@@ -1,16 +1,11 @@
 require("dotenv").config({path: "../.env"});
 
-const MTEToken = artifacts.require("MTEToken.sol");
+const MTEToken = artifacts.require("MTEToken");
 
-var chai = require("chai");
-const BN = web3.utils.BN;
-const chaiBN = require("chai-bn")(BN);
-chai.use(chaiBN);
-
-var chaiAsPromised = require("chai-as-promised");
-chai.use(chaiAsPromised);
-
+const chai = require("./chaiSetup.js");
 const expect = chai.expect;
+
+const BN = web3.utils.BN;
 
 contract("Token Test", async (accounts) => {
     const [deployerAccount, recipientAccount, anotherAccount] = accounts;
@@ -23,9 +18,7 @@ contract("Token Test", async (accounts) => {
         let instance = this.mteToken;
         let totalSupply = await instance.totalSupply();
         
-        return Promise.all([
-            expect(instance.balanceOf(deployerAccount)).to.eventually.be.a.bignumber.equal(totalSupply)  
-        ])
+        return await expect(instance.balanceOf(deployerAccount)).to.eventually.be.a.bignumber.equal(totalSupply);
     });
 
     it("is possible to send tokens between accounts", async () => {
@@ -36,7 +29,7 @@ contract("Token Test", async (accounts) => {
         await expect(instance.balanceOf(deployerAccount)).to.eventually.be.a.bignumber.equal(totalSupply);
         await expect(instance.transfer(recipientAccount, numTokens)).to.eventually.be.fulfilled;
         await expect(instance.balanceOf(deployerAccount)).to.eventually.be.a.bignumber.equal(totalSupply.sub(new BN(numTokens)));
-        await expect(instance.balanceOf(recipientAccount)).to.eventually.be.a.bignumber.equal(new BN(numTokens));
+        return await expect(instance.balanceOf(recipientAccount)).to.eventually.be.a.bignumber.equal(new BN(numTokens));
     });
 
     it("is not possible to send more tokens than available in total", async () => {
@@ -44,6 +37,6 @@ contract("Token Test", async (accounts) => {
         const balanceOfDeployer = await instance.balanceOf(deployerAccount);
 
         await expect(instance.transfer(recipientAccount, new BN(balanceOfDeployer + 1))).to.eventually.be.rejected;
-        await expect(instance.balanceOf(deployerAccount)).to.eventually.be.a.bignumber.equal(balanceOfDeployer);
+        return await expect(instance.balanceOf(deployerAccount)).to.eventually.be.a.bignumber.equal(balanceOfDeployer);
     });
 });
