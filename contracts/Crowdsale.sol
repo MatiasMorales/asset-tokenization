@@ -109,7 +109,7 @@ contract Crowdsale {
      */
     function _preValidatePurchase(address _beneficiary, uint256 _weiAmount)
         internal
-        pure
+        view
         virtual
     {
         require(_beneficiary != address(0));
